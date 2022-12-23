@@ -1,0 +1,18 @@
+---------------------Collecting and analyzing Zeek data with Elastic Security------------------
+
+
+Software requirements:
+
+installing Prerequisites for Zeek for all servers:
+sudo apt-get install cmake make gcc g ++ flex bison libpcap-dev libssl-dev python3 python3-dev swig zlib1g-dev
+
+
+Download and install Zeek
+Download latest version from github
+
+git clone --recursive https://github.com/zeek/zeek
+
+cd zeek /
+./configure
+make
+make install
