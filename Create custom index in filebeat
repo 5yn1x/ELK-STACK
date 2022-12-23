@@ -1,0 +1,12 @@
+filebeat.yml conf:
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["localhost:9200"]
+  index: "airlease"
+setup.template.name: "airlease"
+setup.template.pattern: "airlease-*"
+setup.ilm.enabled: false
+
+
+Check indicies:
+curl -XGET 'SERVER IP/_cat/indices?pretty'
