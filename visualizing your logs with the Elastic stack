@@ -1,0 +1,249 @@
+Installing the ELK stack:
+
+
+Install Java. In this tutorial, we use the OpenJDK package.
+apt install -y openjdk-8-jdk
+
+
+Install the Elastic GPG Key to validate the packages.
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
+
+
+Install HTTPS transport to download the packages over a secure connection.
+apt install -y apt-transport-https
+
+
+Add the Elastic repository to the APT configuration. 
+echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+
+
+Update APT and install Elasticsearch. 
+apt update && apt install -y elasticsearch
+
+
+Uncomment and edit the following lines in the /etc/elasticsearch/elasticsearch.yml file to reflect the example below. 
+This will limit the Elasticsearch connection to localhost.
+network.host: 127.0.0.1
+http.port:9200
+
+
+Install Kibana:
+apt install -y kibana
+
+
+Install Filebeat.
+apt install -y filebeat
+
+
+Run the following command to verify whether Elasticsearch is running:
+curl -X GET "localhost:9200"
+
+
+The output should be similar to this example:
+{
+  "name" : "elastic-stack",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "LiIyk5P1TMuR6MqOWcs_DQ",
+  "version" : {
+    "number" : "7.8.0",
+    "build_flavor" : "default",
+    "build_type" : "deb",
+    "build_hash" : "757314695644ea9a1dc2fecd26d1a43856725e65",
+    "build_date" : "2020-06-14T19:35:50.234439Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.5.1",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+
+
+Open the file /etc/kibana/kibana.yml and uncomment the following lines:
+server.port: 5601
+server.host: "localhost"
+elasticsearch.hosts: ["http://localhost:9200"]
+Save and exit.
+
+
+Enable and start the Kibana service in systemd:
+systemctl enable kibana.service
+systemctl start kibana.service
+
+
+Install nginx as a proxy to Kibana:
+apt install -y nginx
+
+
+Use OpenSSL to create a user and password for the Elastic Stack interface. This command 
+generates a htpasswd file, containing the user kibana and a password you are prompted to create.
+echo "kibana:`openssl passwd -apr1`" | tee -a /etc/nginx/htpasswd.users
+
+
+Edit the /etc/nginx/sites-available/elastic.local file and paste the following content to create a proxy to Kibana.
+ Important:
+
+Replace elastic.local with the domain name of your Instance:
+
+    server {
+      listen 80;
+      server_name elastic.local;
+
+      auth_basic "Restricted Access";
+      auth_basic_user_file /etc/nginx/htpasswd.users;
+
+      location / {
+        proxy_pass         http://localhost:5601;
+        proxy_redirect     off;
+
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+      }
+
+    }
+
+
+
+
+Create a symbolic link to enable the site in nginx:
+ln -s /etc/nginx/sites-available/elastic.local /etc/nginx/sites-enabled/elastic.local
+
+
+Reload the nginx configuration to activate the proxy: 
+systemctl restart nginx
+
+
+You can now access your Elastic Dashboard using your domain name, for example http://elastic.local:
+
+
+Configuring filbeat:
+vi /etc/filebeat/filebeat.yml
+
+
+Search for output.elasticsearch and comment-out the lines as follows:
+[...]
+#output.elasticsearch:
+  # Array of hosts to connect to.
+  #hosts: ["localhost:9200"]
+[...]
+
+
+Enable the system plugin to handle generic system log files with Filebeat. Enable the plugin:
+filebeat modules enable system
+
+
+Load the index template into Elasticsearch:
+filebeat setup --template -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["localhost:9200"]'
+
+
+An output similar to the following displays:
+[...]
+Loaded machine learning job configurations
+2020-07-22T11:48:00.660Z	INFO	eslegclient/connection.go:97	elasticsearch url: http://localhost:9200
+2020-07-22T11:48:00.667Z	INFO	[esclientleg]	eslegclient/connection.go:306	Attempting to connect to Elasticsearch version 7.8.0
+2020-07-22T11:48:00.670Z	INFO	eslegclient/connection.go:97	elasticsearch url: http://localhost:9200
+2020-07-22T11:48:00.674Z	INFO	[esclientleg]	eslegclient/connection.go:306	Attempting to connect to Elasticsearch version 7.8.0
+2020-07-22T11:48:01.405Z	INFO	fileset/pipelines.go:134	Elasticsearch pipeline with ID 'filebeat-7.8.0-system-auth-pipeline' loaded
+2020-07-22T11:48:01.637Z	INFO	fileset/pipelines.go:134	Elasticsearch pipeline with ID 'filebeat-7.8.0-system-syslog-pipeline' loaded
+2020-07-22T11:48:01.637Z	INFO	cfgfile/reload.go:262	Loading of config files completed.
+2020-07-22T11:48:01.637Z	INFO	[load]	cfgfile/list.go:118	Stopping 1 runners ...
+Loaded Ingest pipelines
+
+
+You can now start and enable the Filebeat service:
+systemctl start filebeat.service
+systemctl enable filebeat.service
+
+
+Run the following command to verify that your Filebeat service is running:
+curl -XGET 'http://localhost:9200/filebeat-*/_search?pretty'
+
+The output should look like the following example:
+{
+  "took" : 11,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 2,
+    "successful" : 2,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 2058,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "filebeat-7.8.0-2020.07.22",
+        "_type" : "_doc",
+        "_id" : "ZIpbdnMBenM2E5SX9FAi",
+        "_score" : 1.0,
+        "_source" : {
+          "message" : "Jul 22 11:17:44 eleastic-stack kernel: Command line: BOOT_IMAGE=/boot/vmlinuz-5.4.0-1018-kvm root=PARTUUID=fc220e13-bb33-43c7-a49a-90d85d9edc7f ro console=tty1 console=ttyS0 panic=-1",
+          "@version" : "1",
+          "fileset" : {
+            "name" : "syslog"
+          },
+          "host" : {
+            "containerized" : false,
+            "mac" : [
+              "de:1c:4c:3e:90:3a"
+            ],
+            "hostname" : "eleastic-stack",
+            "name" : "eleastic-stack",
+            "os" : {
+              "codename" : "focal",
+              "version" : "20.04 LTS (Focal Fossa)",
+              "kernel" : "5.4.0-1018-kvm",
+              "family" : "debian",
+              "name" : "Ubuntu",
+              "platform" : "ubuntu"
+            },
+            "architecture" : "x86_64",
+            "id" : "a4d9477d47d14c4fb551f52adb5eb810",
+            "ip" : [
+              "10.65.100.115",
+              "2001:bc8:47b0:1239::1",
+              "fe80::dc1c:4cff:fe3e:903a"
+            ]
+          },
+          "ecs" : {
+            "version" : "1.5.0"
+          },
+          "service" : {
+            "type" : "system"
+          },
+          "log" : {
+            "offset" : 344,
+            "file" : {
+              "path" : "/var/log/syslog"
+            }
+          },
+          "input" : {
+            "type" : "log"
+          },
+          "@timestamp" : "2020-07-22T11:49:57.578Z",
+          "agent" : {
+            "ephemeral_id" : "348ca814-7f48-408e-9956-d8650d74420b",
+            "version" : "7.8.0",
+            "type" : "filebeat",
+            "hostname" : "eleastic-stack",
+            "name" : "eleastic-stack",
+            "id" : "76a478aa-6c78-47c8-a045-a962e89a1046"
+          },
+          "tags" : [
+            "beats_input_codec_plain_applied"
+          ],
+          "event" : {
+            "dataset" : "system.syslog",
+            "module" : "system",
+            "timezone" : "+00:00"
+          }
+        }
+      },
+[...]
+
+
