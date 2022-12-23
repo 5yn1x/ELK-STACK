@@ -247,3 +247,12 @@ The output should look like the following example:
 [...]
 
 
+
+--------REFERENCE LINKS:-----------------
+https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-metricbeat-on-ubuntu-18-04
+
+https://www.scaleway.com/en/docs/tutorials/collecting-visualizing-logs-elastic-stack/
+
+https://gitlab.com/xavki/devopsland/-/blob/master/elk/02-install-ELK-stack/slides.md
+
+
