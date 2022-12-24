@@ -1,5 +1,4 @@
 # ELK-STACK
-Full setup
 
 
 How you can install elasticsrch and kibana,
