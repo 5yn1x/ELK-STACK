@@ -23,13 +23,27 @@ apt update && apt install -y elasticsearch
 
 Uncomment and edit the following lines in the /etc/elasticsearch/elasticsearch.yml file to reflect the example below. 
 This will limit the Elasticsearch connection to localhost.
-network.host: 127.0.0.1
+network.host: 127.0.0.1 
+
+#or you can access without proxy pass or nginx
+network.host: 0.0.0.0
+
 http.port:9200
 
 
 Install Kibana:
 apt install -y kibana
 
+Uncomment the following things:
+server.port: 5601
+server.host: "localhost"
+elasticsearch.host: ["http://localhost:9200"]
+
+#or you can access without proxy pass or nginx
+server.port: 5601
+server.host: 0.0.0.0
+elasticsearch.host: ["http://0.0.0.0:9200"]
+then save and exit.
 
 Install Filebeat.
 apt install -y filebeat
