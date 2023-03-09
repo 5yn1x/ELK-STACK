@@ -6,7 +6,7 @@ Search for output.elasticsearch and comment-out the lines as follows:
 [...]
 #output.elasticsearch:
   # Array of hosts to connect to.
-  #hosts: ["localhost:9200"]
+  #hosts: ["YOUR-IP:9200"]
 [...]
 
 
