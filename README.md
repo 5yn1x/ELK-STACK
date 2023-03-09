@@ -4,5 +4,5 @@
 ![Screenshot](elk.png)
 
 
-How you can install elasticsrch and kibana,
-configure filebeat to get log from the system!
+All about elasticsearch, kibana, beats, beats-modules etc...
+Also how you can configure them!
