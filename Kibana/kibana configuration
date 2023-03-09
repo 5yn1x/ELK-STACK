@@ -17,4 +17,6 @@ systemctl start kibana.service
 Check the kibana status by:
 systemctl status kibana.service
 
+if service is running then you can access your kibana dashboard by http://YOUR-IP:5601
+
 Or refer to kibana.yml for configuration
