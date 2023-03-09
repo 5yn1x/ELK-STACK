@@ -10,8 +10,9 @@ MM  MMMMMMMM M  MMMMMMMM M  MMMMb  M
 MM        .M M         M M  MMMMM  M 
 MMMMMMMMMMMM MMMMMMMMMMM MMMMMMMMMMM 
 
+echo "MADE BY 5YN1X"
 "
-s
+
 echo " "
 echo "[+] Installing the ELK stack"
 
