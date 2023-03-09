@@ -34,6 +34,12 @@ The output should be similar to this example:
   "tagline" : "You Know, for Search"
 }
 
+Start the elasticsearch:
+systemctl start elasticsearch
+systemctl stop elasticsearch
+systemctl status elasticsearch
+systemctl restart elasticsearch
+
 ###########################################################  With Nginx Proxy-Pass  ##################################################################
 
 Install nginx as a proxy to Kibana:
