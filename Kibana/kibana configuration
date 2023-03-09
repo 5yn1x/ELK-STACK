@@ -16,3 +16,5 @@ systemctl start kibana.service
 
 Check the kibana status by:
 systemctl status kibana.service
+
+Or refer to kibana.yml for configuration
