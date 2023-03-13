@@ -1,0 +1,40 @@
+For configure packetbeat follow this steps:
+
+
+Search for output.elasticsearch and comment-out the lines as follows:
+[...]
+#output.elasticsearch:
+  # Array of hosts to connect to.
+  #hosts: ["YOUR-IP:9200"]
+[...]
+
+or change any other config. according to your need!
+
+Install Winlogbeat:
+Run :
+PS C:\Program Files\Winlogbeat> .\install-service-winlogbeat.ps1
+
+From the installation directory, run:
+PS > .\winlogbeat.exe setup -e
+
+
+then press R
+
+
+Test your config file:
+PS C:\Program Files\Winlogbeat> .\winlogbeat.exe test config -c .\winlogbeat.yml -e
+
+
+Start the winloagbeat
+PS C:\Program Files\Winlogbeat> Start-Service winlogbeat
+
+
+Check the status:
+PS C:\Program Files\Winlogbeat> services.msc
+
+
+Stop winlogbeat:
+
+PS C:\Program Files\Winlogbeat> Stop-Service winlogbeat
+
+After check the data in kibana!!
